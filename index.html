@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>自動車関連英語 音声練習アプリ - Car English Practice</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- バックグラウンドエフェクト（グラデーションの光） -->
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <!-- サイドバー: 例文リスト -->
+    <aside class="sidebar glass-panel">
+      <div class="sidebar-header">
+        <div class="logo">
+          <span class="material-icons-round logo-icon">minor_limits</span>
+          <h1>CarEng<span class="gradient-text">Pro</span></h1>
+        </div>
+        <p class="subtitle">自動車現場の英語表現</p>
+      </div>
+
+      <div class="progress-section">
+        <div class="progress-info">
+          <span>進捗状況</span>
+          <span id="progress-text">0 / 9 (0%)</span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar" id="main-progress-bar" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <nav class="sentence-list" id="sentence-navigation">
+        <!-- JavaScriptで動的に生成 -->
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="reset-progress-btn" class="btn btn-secondary btn-sm">
+          <span class="material-icons-round">restart_alt</span>
+          進捗をリセット
+        </button>
+      </div>
+    </aside>
+
+    <!-- メインコンテンツ領域 -->
+    <main class="main-content">
+      <!-- 練習カード (アクティブな文) -->
+      <section class="practice-container" id="practice-card-section">
+        <div class="practice-header glass-panel">
+          <div class="header-left">
+            <span class="sentence-number-badge" id="active-id-badge">Sentence 1</span>
+            <span class="status-badge" id="active-status-badge">未着手</span>
+          </div>
+          
+          <!-- 練習モード切り替えタブ -->
+          <div class="tab-container">
+            <button class="tab-btn active" data-mode="learn">
+              <span class="material-icons-round">auto_stories</span>
+              学習
+            </button>
+            <button class="tab-btn" data-mode="listen">
+              <span class="material-icons-round">hearing</span>
+              リスニング
+            </button>
+            <button class="tab-btn" data-mode="speak">
+              <span class="material-icons-round">mic</span>
+              スピーキング
+            </button>
+          </div>
+        </div>
+
+        <div class="card-workspace">
+          <!-- メイン問題カード -->
+          <div class="workspace-card glass-panel" id="main-problem-card">
+            <!-- 日本語訳 -->
+            <div class="text-section japanese-section">
+              <h3 class="section-label">日本語訳</h3>
+              <p class="japanese-text" id="display-japanese">W/H（ワイヤーハーネス）の分岐が金属エッジと干渉しているので、分岐位置を変更します。</p>
+            </div>
+
+            <!-- 英語表現 (モードによって伏せられる) -->
+            <div class="text-section english-section" id="english-wrapper">
+              <h3 class="section-label">英語表現</h3>
+              <div class="english-text-container">
+                <p class="english-text" id="display-english">
+                  The wire harness branch interferes (with the metal edge), so we will change the branch position.
+                </p>
+                <div class="listening-hidden-mask" id="listen-mask">
+                  <span class="material-icons-round">lock</span>
+                  <p>音声を聴いて書き取るか、発音してください</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 文法ビジュアライザー (学習モードのみ) -->
+            <div class="text-section grammar-section" id="grammar-wrapper">
+              <h3 class="section-label">構造分解 (S V O C M)</h3>
+              <div class="grammar-visualizer" id="display-grammar-visualizer">
+                <!-- 動的に要素を生成 -->
+              </div>
+              <div class="grammar-legend">
+                <span class="legend-item s">Subject (主語)</span>
+                <span class="legend-item v">Verb (動詞)</span>
+                <span class="legend-item o">Object (目的語)</span>
+                <span class="legend-item c">Complement (補語)</span>
+                <span class="legend-item m">Modifier (修飾語)</span>
+                <span class="legend-item conj">Conjunction (接続詞)</span>
+              </div>
+            </div>
+
+            <!-- 解説メモ (学習モードのみ) -->
+            <div class="text-section note-section" id="note-wrapper">
+              <h3 class="section-label">解説・重要語彙</h3>
+              <p class="note-text" id="display-note">解説がここに表示されます。</p>
+            </div>
+          </div>
+
+          <!-- アクション・操作パネル -->
+          <div class="control-panel glass-panel">
+            <div class="audio-controls">
+              <div class="speed-control">
+                <label for="speech-speed-range">再生速度: <span id="speed-val">1.0x</span></label>
+                <input type="range" id="speech-speed-range" min="0.7" max="1.3" step="0.1" value="1.0">
+              </div>
+              
+              <!-- 発音を聞くボタン -->
+              <button id="tts-play-btn" class="btn btn-primary btn-lg pulse-hover">
+                <span class="material-icons-round">volume_up</span>
+                発音を聴く
+              </button>
+            </div>
+
+            <!-- スピーキング練習コントロール (スピーキングモードのみ) -->
+            <div class="speaking-controls hidden" id="speaking-panel">
+              <div class="speaking-instruction">
+                <p>下のマイクボタンを押し、英語で話しかけてください。</p>
+              </div>
+
+              <div class="mic-button-wrapper">
+                <div class="pulse-ring" id="mic-pulse-ring"></div>
+                <button id="mic-record-btn" class="btn btn-mic">
+                  <span class="material-icons-round" id="mic-icon">mic</span>
+                </button>
+              </div>
+              <div class="speaking-status" id="speak-status-text">マイクボタンを押すと録音が始まります</div>
+
+              <div class="speech-result-panel hidden" id="speech-result-card">
+                <div class="result-score-section">
+                  <div class="score-circle">
+                    <svg viewBox="0 0 36 36" class="circular-chart">
+                      <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      <path class="circle" id="score-circle-progress" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <div class="score-text">
+                      <span class="score-number" id="result-score-num">0</span>
+                      <span class="score-label">点</span>
+                    </div>
+                  </div>
+                  <div class="score-evaluation" id="score-eval-text">Good!</div>
+                </div>
+
+                <div class="result-details">
+                  <div class="detail-row">
+                    <span class="detail-label">あなたが発音した英語:</span>
+                    <p class="user-transcript" id="user-speech-transcript">...</p>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">お手本の英語:</span>
+                    <p class="model-sentence" id="model-speech-sentence">...</p>
+                  </div>
+                </div>
+
+                <button id="complete-sentence-btn" class="btn btn-success btn-block hidden">
+                  <span class="material-icons-round">check_circle</span>
+                  この文をマスターした！
+                </button>
+              </div>
+            </div>
+
+            <!-- リスニングテスト・コントロール (リスニングモードのみ) -->
+            <div class="listening-controls hidden" id="listening-panel">
+              <div class="listening-instruction">
+                <p>音声をよく聴いて、正しい英文をタイピングしてください。</p>
+              </div>
+              <div class="answer-input-container">
+                <textarea id="listening-answer-input" placeholder="ここに聴き取った英語を入力してください..."></textarea>
+                <div class="input-actions">
+                  <button id="listening-submit-btn" class="btn btn-accent">
+                    <span class="material-icons-round">done</span>
+                    回答をチェック
+                  </button>
+                </div>
+              </div>
+
+              <div class="listening-result hidden" id="listening-result-panel">
+                <div class="listening-status" id="listening-status-header">
+                  <span class="material-icons-round" id="listening-status-icon">check</span>
+                  <span id="listening-status-msg">正解！</span>
+                </div>
+                <div class="listening-comparison">
+                  <div class="comparison-item">
+                    <span class="detail-label">あなたの回答:</span>
+                    <p id="user-listening-answer" class="user-transcript">...</p>
+                  </div>
+                  <div class="comparison-item">
+                    <span class="detail-label">正解:</span>
+                    <p id="model-listening-sentence" class="model-sentence">...</p>
+                  </div>
+                </div>
+                <button id="complete-listening-btn" class="btn btn-success btn-block hidden">
+                  <span class="material-icons-round">check_circle</span>
+                  この文をマスターした！
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ページネーション（前へ、次へ） -->
+        <div class="pagination-controls">
+          <button id="prev-sentence-btn" class="btn btn-secondary">
+            <span class="material-icons-round">arrow_back</span>
+            前の例文
+          </button>
+          <button id="next-sentence-btn" class="btn btn-secondary">
+            次の例文
+            <span class="material-icons-round">arrow_forward</span>
+          </button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
