@@ -334,6 +334,8 @@ function resetModeState() {
         pTag.textContent = 'マイクに向かって英語を発話してください';
       }
     }
+  } else if (activeMode === 'learn' && listenMask) {
+    listenMask.classList.add('hidden');
   }
 }
 
