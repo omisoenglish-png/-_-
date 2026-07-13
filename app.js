@@ -291,8 +291,6 @@ function switchMode(mode) {
   else if (mode === 'speak') {
     englishWrapper.classList.remove('hidden');
     listenMask.classList.remove('hidden'); // Hide english until spoken
-    // Update mask text for speaking
-    listenMask.querySelector('p').textContent = 'マイクに向かって英語を発話してください';
     grammarWrapper.classList.add('hidden');
     noteWrapper.classList.add('hidden');
     speakingPanel.classList.remove('hidden');
@@ -319,8 +317,16 @@ function resetModeState() {
   completeListeningBtn.classList.add('hidden');
 
   // If in mask mode, hide the english text
-  if (activeMode !== 'learn') {
+  if (activeMode !== 'learn' && listenMask) {
     listenMask.classList.remove('hidden');
+    const pTag = listenMask.querySelector('p');
+    if (pTag) {
+      if (activeMode === 'listen') {
+        pTag.textContent = '下記で回答をチェックしたら見ることができます。';
+      } else if (activeMode === 'speak') {
+        pTag.textContent = 'マイクに向かって英語を発話してください';
+      }
+    }
   }
 }
 
@@ -370,41 +376,57 @@ function playTTS() {
 // SPEECH RECOGNITION (Speaking Mode)
 // -------------------------------------------------------------
 function setupSpeechRecognition() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    speakStatusText.textContent = 'ブラウザが音声認識に対応していません。ChromeかEdgeをご利用ください。';
-    micRecordBtn.disabled = true;
-    return;
+  try {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      if (speakStatusText) {
+        speakStatusText.textContent = 'ブラウザが音声認識に対応していません。ChromeかEdgeをご利用ください。';
+      }
+      if (micRecordBtn) {
+        micRecordBtn.disabled = true;
+      }
+      return;
+    }
+
+    recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      isRecording = true;
+      if (micIcon) micIcon.textContent = 'fiber_manual_record';
+      if (micRecordBtn) micRecordBtn.classList.add('recording');
+      if (micPulseRing) micPulseRing.classList.add('active');
+      if (speakStatusText) speakStatusText.textContent = '聞き取り中... お手本の英語を発音してください。';
+      if (speechResultCard) speechResultCard.classList.add('hidden');
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      if (speakStatusText) {
+        speakStatusText.textContent = `エラーが発生しました (${event.error})。もう一度お試しください。`;
+      }
+      stopRecordingUI();
+    };
+
+    recognition.onend = () => {
+      stopRecordingUI();
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      evaluateSpeech(transcript);
+    };
+  } catch (e) {
+    console.error('Failed to initialize speech recognition:', e);
+    if (speakStatusText) {
+      speakStatusText.textContent = '音声認識の初期化に失敗しました。ローカルサーバー経由で開くか、HTTPS環境でご利用ください。';
+    }
+    if (micRecordBtn) {
+      micRecordBtn.disabled = true;
+    }
   }
-
-  recognition = new SpeechRecognition();
-  recognition.lang = 'en-US';
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
-
-  recognition.onstart = () => {
-    isRecording = true;
-    micIcon.textContent = 'fiber_manual_record';
-    micRecordBtn.classList.add('recording');
-    micPulseRing.classList.add('active');
-    speakStatusText.textContent = '聞き取り中... お手本の英語を発音してください。';
-    speechResultCard.classList.add('hidden');
-  };
-
-  recognition.onerror = (event) => {
-    console.error('Speech recognition error:', event.error);
-    speakStatusText.textContent = `エラーが発生しました (${event.error})。もう一度お試しください。`;
-    stopRecordingUI();
-  };
-
-  recognition.onend = () => {
-    stopRecordingUI();
-  };
-
-  recognition.onresult = (event) => {
-    const transcript = event.results[0][0].transcript;
-    evaluateSpeech(transcript);
-  };
 }
 
 function stopRecordingUI() {
@@ -610,10 +632,7 @@ function setupEventListeners() {
     });
   });
 
-  // Reveal english by clicking mask
-  listenMask.addEventListener('click', () => {
-    listenMask.classList.add('hidden');
-  });
+
 
   // Pagination
   prevBtn.addEventListener('click', () => {
