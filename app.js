@@ -72,12 +72,17 @@ const completeListeningBtn = document.getElementById('complete-listening-btn');
 // INITIALIZATION
 // -------------------------------------------------------------
 function init() {
-  loadProgress();
-  setupEventListeners();
-  renderNavigation();
-  updateProgressUI();
-  selectSentence(activeSentenceId);
-  setupSpeechRecognition();
+  try {
+    loadProgress();
+    setupEventListeners();
+    renderNavigation();
+    updateProgressUI();
+    selectSentence(activeSentenceId);
+    setupSpeechRecognition();
+  } catch (error) {
+    console.error("App initialization failed:", error);
+    alert("アプリの初期化でエラーが発生しました:\n" + error.message + "\n\nスタックトレース:\n" + error.stack);
+  }
 }
 
 // -------------------------------------------------------------
@@ -130,9 +135,11 @@ function updateProgressUI() {
 
   Object.keys(userProgress).forEach(id => {
     const prog = userProgress[id];
-    if (prog.learn) completedTasks++;
-    if (prog.listen) completedTasks++;
-    if (prog.speak) completedTasks++;
+    if (prog) {
+      if (prog.learn) completedTasks++;
+      if (prog.listen) completedTasks++;
+      if (prog.speak) completedTasks++;
+    }
   });
 
   const percent = Math.round((completedTasks / totalTasks) * 100);
