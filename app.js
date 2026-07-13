@@ -356,10 +356,28 @@ function playTTS() {
   // Set speed
   speechUtterance.rate = parseFloat(speedRange.value);
 
-  // Find a high-quality English voice if available
+  // Find a high-quality English voice if available (optimizing for female voice)
   const voices = window.speechSynthesis.getVoices();
-  const enVoice = voices.find(voice => voice.lang.includes('en-US') && voice.name.includes('Google')) || 
-                  voices.find(voice => voice.lang.startsWith('en-'));
+  const priorityVoiceNames = [
+    'google us english', // PC Chrome
+    'samantha',          // iOS Standard Female
+    'siri',              // iOS Siri
+    'microsoft zira',    // Windows Microsoft Female
+    'karen',             // iOS Australian Female
+    'moira'              // iOS Irish Female
+  ];
+
+  let enVoice = null;
+  for (const nameKeyword of priorityVoiceNames) {
+    enVoice = voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes(nameKeyword));
+    if (enVoice) break;
+  }
+
+  if (!enVoice) {
+    enVoice = voices.find(voice => voice.lang.includes('en-US')) || 
+              voices.find(voice => voice.lang.startsWith('en-'));
+  }
+
   if (enVoice) {
     speechUtterance.voice = enVoice;
   }
