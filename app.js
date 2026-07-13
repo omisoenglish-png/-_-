@@ -198,7 +198,7 @@ function selectSentence(id) {
   updateStatusBadge(sentence.id);
   displayJapanese.textContent = sentence.japanese;
   displayEnglish.textContent = sentence.english;
-  displayNote.textContent = sentence.note;
+  displayNote.innerHTML = sentence.note;
 
   // Render grammar visualization
   renderGrammar(sentence);
